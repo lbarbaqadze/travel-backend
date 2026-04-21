@@ -11,7 +11,7 @@ import bookingRoutes from "./routes/bookingRoutes.js"
 dotenv.config()
 const server = express()
 server.use(express.json())
-app.use(cors({
+server.use(cors({
   origin: [
     "https://travel-frontend-zeta-indol.vercel.app",
     "http://localhost:3000"

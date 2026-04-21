@@ -1,7 +1,7 @@
 import dbconnect from "../config/dbconnect.js";
 
 export const addToCart = async (req, res) => {
-    const { tour_id, tour_category } = req.body; 
+    const { tour_id, tour_category } = req.body;
     const user_id = req.user.id;
 
     try {
@@ -14,12 +14,11 @@ export const addToCart = async (req, res) => {
             return res.status(400).json({ message: "Already in bag" });
         }
 
-        await dbconnect.execute(
-            "INSERT INTO cart (user_id, tour_id, tour_category) VALUES (?, ?, ?)", 
+        const [result] = await dbconnect.execute(
+            "INSERT INTO cart (user_id, tour_id, tour_category) VALUES (?, ?, ?)",
             [user_id, tour_id, tour_category]
         );
-
-        return res.status(200).json({ message: "Added successfully" });
+        return res.status(200).json({ message: "Added successfully", cart_id: result.insertId });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Server error" });
@@ -27,7 +26,7 @@ export const addToCart = async (req, res) => {
 };
 
 export const getCart = async (req, res) => {
-    const userId = req.user.id; 
+    const userId = req.user.id;
     try {
         const [rows] = await dbconnect.execute(
             `SELECT 
@@ -53,13 +52,13 @@ export const getCart = async (req, res) => {
              LEFT JOIN europe e ON c.tour_id = e.id AND c.tour_category = 'europe'
              LEFT JOIN asia a ON c.tour_id = a.id AND c.tour_category = 'asia'
              LEFT JOIN tours t ON c.tour_id = t.id AND c.tour_category = 'tours'
-             WHERE c.user_id = ?`, 
+             WHERE c.user_id = ?`,
             [userId]
         );
-        return res.status(200).json(rows); 
+        return res.status(200).json(rows);
     } catch (err) {
         console.error(err);
-        return res.status(500).json([]); 
+        return res.status(500).json([]);
     }
 };
 

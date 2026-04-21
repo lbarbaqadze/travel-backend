@@ -122,31 +122,37 @@ export const googleSync = async (req, res) => {
     const { email, name, image } = req.body;
 
     try {
+        let user;
         const [existingUser] = await dbconnect.query("SELECT * FROM users WHERE email = ?", [email]);
 
         if (existingUser.length > 0) {
-            return res.status(200).json({
-                message: "Logged in via Google",
-                user: existingUser[0]
-            });
+            user = existingUser[0];
+        } else {
+            const [result] = await dbconnect.query(
+                "INSERT INTO users (name, email, password, profile_image, role) VALUES (?, ?, ?, ?, ?)",
+                [name, email, null, image, 'user']
+            );
+            user = {
+                id: result.insertId,
+                name: name,
+                email: email,
+                profile_image: image,
+                role: 'user'
+            };
         }
 
-        const [result] = await dbconnect.query(
-            "INSERT INTO users (name, email, password, profile_image) VALUES (?, ?, ?, ?)",
-            [name, email, null, image]
+        const token = jwt.sign(
+            { id: user.id, role: user.role }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: "7d" }
         );
 
-        const newUser = {
-            id: result.insertId,
-            username: name,
-            email: email,
-            profile_image: image
-        };
-
-        res.status(201).json({
-            message: "User created via Google",
-            user: newUser
+        res.status(200).json({
+            message: "Success",
+            token, 
+            user
         });
+
     } catch (error) {
         console.error("Google Sync Error:", error);
         res.status(500).json({ message: "Internal server error" });
