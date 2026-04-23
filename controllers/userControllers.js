@@ -26,7 +26,7 @@ export const Register = async (req, res) => {
         await dbconnect.execute(sql, [firstName, lastName, email, hashedPassword, vCode]);
 
         const mailOptions = {
-            from: '"Travel Agency Georgia 🇬🇪" <travelagencyinfo21@gmail.com>',
+            from: '"Travel Agency Georgia" <travelagencyinfo21@gmail.com>',
             to: email,
             subject: 'Verification Code',
             html: `
@@ -175,7 +175,7 @@ export const ForgotPassword = async (req, res) => {
         await dbconnect.execute('UPDATE users SET verification_code = ? WHERE email = ?', [resetCode, email])
 
         const mailOptions = {
-            from: '"Travel Agency Georgia 🇬🇪" <travelagencyinfo21@gmail.com>',
+            from: '"Travel Agency Georgia" <travelagencyinfo21@gmail.com>',
             to: email,
             subject: 'Password recovery',
             html: `<h3>Your password recovery code is: ${resetCode}</h3>`
@@ -193,12 +193,12 @@ export const ResetPassword = async (req, res) => {
     const { email, code, newPassword } = req.body;
 
     try {
-        const [user] = await dbconnect.execute(
+        const [rows] = await dbconnect.execute(
             'SELECT * FROM users WHERE email = ? AND verification_code = ?', 
             [email, code]
         );
 
-        if (user.length === 0) {
+        if (rows.length === 0) {
             return res.status(400).json({ message: "Invalid Code" });
         }
 
